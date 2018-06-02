@@ -1,0 +1,168 @@
+
+一、Android6.0运行时权限描述
+    在旧的权限管理系统中，权限仅仅在App安装时询问用户一次，用户同意了这些权限App才能被安装。
+
+    在Android6.0开始，App可以直接安装，App在运行时一个一个询问用户授予权限，系统会弹出一个对话框让用户选择是否授权某个权限给App（这个Dialog不能由开发者定制），当App需要用户授予不恰当的权限的时候，用户可以拒绝，用户也可以在设置页面对每个App的权限进行管理。
+
+    特别注意：这个对话框不是开发者调用某个权限的功能时由系统自动弹出，而是需要开发者手动调用，如果你直接调用而没有去申请权限的话，将会导致App崩溃。
+
+二、需要动态申请的权限
+    所有危险的Android系统权限属于权限组，如果APP运行在Android 6.0 (API level 23)或者更高级别的设备中，而且targetSdkVersion>=23时，系统将会自动采用动态权限管理策略，如果你在涉及到特殊权限操作时没有申请权限权限而直接调用了相关代码，你的App可能就崩溃了。
+
+    1、此类权限也必须在 AndroidManifest 中申明，否则申请时不提示用户，直接回调开发者权限被拒绝。
+    2、同一个权限组的任何一个权限被授权了，这个权限组的其他权限也自动被授权。例如一旦WRITE_CONTACTS被授权了，App也有READ_CONTACTS和GET_ACCOUNTS了。
+    3、申请某一个权限的时候系统弹出的Dialog是对整个权限组的说明，而不是单个权限。例如我申请READ_EXTERNAL_STORAGE，系统会提示"允许xxx访问设备上的照片、媒体内容和文件吗？"。
+
+    共分为9组，每组只要有一个权限申请成功了，就默认整组权限都可以使用了。
+          group:android.permission-group.CONTACTS
+            permission:android.permission.WRITE_CONTACTS
+            permission:android.permission.GET_ACCOUNTS
+            permission:android.permission.READ_CONTACTS
+
+          group:android.permission-group.PHONE
+            permission:android.permission.READ_CALL_LOG
+            permission:android.permission.READ_PHONE_STATE
+            permission:android.permission.CALL_PHONE
+            permission:android.permission.WRITE_CALL_LOG
+            permission:android.permission.USE_SIP
+            permission:android.permission.PROCESS_OUTGOING_CALLS
+            permission:com.android.voicemail.permission.ADD_VOICEMAIL
+
+          group:android.permission-group.CALENDAR
+            permission:android.permission.READ_CALENDAR
+            permission:android.permission.WRITE_CALENDAR
+
+          group:android.permission-group.CAMERA
+            permission:android.permission.CAMERA
+
+          group:android.permission-group.SENSORS
+            permission:android.permission.BODY_SENSORS
+
+          group:android.permission-group.LOCATION
+            permission:android.permission.ACCESS_FINE_LOCATION
+            permission:android.permission.ACCESS_COARSE_LOCATION
+
+          group:android.permission-group.STORAGE
+            permission:android.permission.READ_EXTERNAL_STORAGE
+            permission:android.permission.WRITE_EXTERNAL_STORAGE
+
+          group:android.permission-group.MICROPHONE
+            permission:android.permission.RECORD_AUDIO
+
+          group:android.permission-group.SMS
+            permission:android.permission.READ_SMS
+            permission:android.permission.RECEIVE_WAP_PUSH
+            permission:android.permission.RECEIVE_MMS
+            permission:android.permission.RECEIVE_SMS
+            permission:android.permission.SEND_SMS
+            permission:android.permission.READ_CELL_BROADCASTS
+
+三、普通权限
+    此类权限都是正常保护的权限，只需要在AndroidManifest.xml中简单声明这些权限即可，安装即授权，不需要每次使用时都检查权限，而且用户不能取消以上授权，除非用户卸载App。
+          android.permission.ACCESS_LOCATION_EXTRA_COMMANDS
+          android.permission.ACCESS_NETWORK_STATE
+          android.permission.ACCESS_NOTIFICATION_POLICY
+          android.permission.ACCESS_WIFI_STATE
+          android.permission.ACCESS_WIMAX_STATE
+          android.permission.BLUETOOTH
+          android.permission.BLUETOOTH_ADMIN
+          android.permission.BROADCAST_STICKY
+          android.permission.CHANGE_NETWORK_STATE
+          android.permission.CHANGE_WIFI_MULTICAST_STATE
+          android.permission.CHANGE_WIFI_STATE
+          android.permission.CHANGE_WIMAX_STATE
+          android.permission.DISABLE_KEYGUARD
+          android.permission.EXPAND_STATUS_BAR
+          android.permission.FLASHLIGHT
+          android.permission.GET_ACCOUNTS
+          android.permission.GET_PACKAGE_SIZE
+          android.permission.INTERNET
+          android.permission.KILL_BACKGROUND_PROCESSES
+          android.permission.MODIFY_AUDIO_SETTINGS
+          android.permission.NFC
+          android.permission.READ_SYNC_SETTINGS
+          android.permission.READ_SYNC_STATS
+          android.permission.RECEIVE_BOOT_COMPLETED
+          android.permission.REORDER_TASKS
+          android.permission.REQUEST_INSTALL_PACKAGES
+          android.permission.SET_TIME_ZONE
+          android.permission.SET_WALLPAPER
+          android.permission.SET_WALLPAPER_HINTS
+          android.permission.SUBSCRIBED_FEEDS_READ
+          android.permission.TRANSMIT_IR
+          android.permission.USE_FINGERPRINT
+          android.permission.VIBRATE
+          android.permission.WAKE_LOCK
+          android.permission.WRITE_SYNC_SETTINGS
+          com.android.alarm.permission.SET_ALARM
+          com.android.launcher.permission.INSTALL_SHORTCUT
+          com.android.launcher.permission.UNINSTALL_SHORTCUT
+
+
+四、相关API
+    1、PackageManager.PERMISSION_DENIED：该权限是被拒绝的。
+       PackageManager.PERMISSION_GRANTED：该权限是被授权的。
+
+    2、v4包中的三个静态方法
+          ContextCompat.checkSelfPermission(Context context, String permission)
+          ActivityCompat.requestPermissions(Activity activity,String[] permissions, int requestCode)
+          ActivityCompat.shouldShowRequestPermissionRationale(Activity activity,String permission)
+
+    2、Activity中或者Fragment中的几个方法：
+          int checkSelfPermission(String permission)
+          void requestPermissions(String[] permissions, int requestCode)
+          boolean shouldShowRequestPermissionRationale(String permission)
+          void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+
+    3、checkSelfPermission() 检查权限
+        3.1、检查某一个权限的当前状态，你应该在请求某个权限时检查这个权限是否已经被用户授权，已经授权的权限重复申请可能会让用户产生厌烦。
+        3.2、该方法有一个参数是权限名称，有一个int的返回值，用这个值与上面提到的两个常量做比较可判断检查的权限当前的状态。
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // 没有权限，去申请权限。
+                } else {
+                    // 有权限了，去执行操作。
+                }
+
+    4、requestPermissions() 申请权限
+       请求用户授权几个权限，调用后系统会显示一个请求用户授权的提示对话框，App不能配置和修改这个对话框，如果需要提示用户这个权限相关的信息或说明，
+       需要在调用 requestPermissions() 之前处理，该方法有两个参数：
+            1、String[] permissions，权限数组，你需要申请的的权限的数组。
+            2、int requestCode，会在回调onRequestPermissionsResult()时返回，用来判断是哪个授权申请的回调。
+       由于该方法是异步的，所以无返回值，当用户处理完授权操作时，会回调 Activity 或者 Fragment 的 onRequestPermissionsResult() 方法。
+
+       4.1、对于Activity我们直接调用requestPermissions(int, String[])即可，不过这个方法是在api leve 23以上，所以我们为了适配可以是使用兼容包提供的方法：
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_CONTACTS}, requestCode);
+       4.2、对于support包的Fragment就可以直接调用requestPermissions(int, String[])，对于app包的Fragment就需要做版本判断了，这样就显得比较麻烦。
+
+    5、onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) 处理权限结果回调
+       该方法在Activity/Fragment中应该被重写，当用户处理完授权操作时，系统会自动回调该方法，该方法有三个参数：
+          1、int requestCode，在调用requestPermissions()时的第一个参数。
+          2、String[] permissions，权限数组，在调用requestPermissions()时的第二个参数。
+          3、int[] grantResults，授权结果数组，对应permissions，具体值和上方提到的PackageManager中的两个常量做比较。
+
+    6、shouldShowRequestPermissionRationale()：是否应该显示请求权限的说明
+       注意：如果用户拒绝了这个权限，返回true；
+             如果用户拒绝了这个权限，并且勾选了不再提醒”选项，返回false.
+
+       第一次请求权限时，用户拒绝了，调用shouldShowRequestPermissionRationale()后返回true，应该显示一些为什么需要这个权限的说明。
+       用户在第一次拒绝某个权限后，下次再次申请时，授权的dialog中将会出现“不再提醒”选项，一旦选中勾选了，那么下次申请将不会提示用户。
+       第二次请求权限时，用户拒绝了，并选择了“不再提醒”的选项，调用shouldShowRequestPermissionRationale()后返回false。
+       设备的策略禁止当前应用获取这个权限的授权：shouldShowRequestPermissionRationale()返回false 。
+       加这个提醒的好处在于，用户拒绝过一次权限后我们再次申请时可以提醒该权限的重要性，免得再次申请时用户勾选“不再提醒”并决绝，导致下次申请权限直接失败。
+
+五、申请权限的步骤
+    1、检查权限checkSelfPermission()，通过返回值判断权限是否已经开启，如果已开启，直接做自己的操作。
+    2、如果权限未开启，则判断是否需要向用户解释为何申请权限 shouldShowRequestPermissionRationale。
+       2.1、返回true,向用户给出 为什么需要此权限的 提示。
+       2.2、返回false，则直接调用 requestPermissions() 去申请权限。
+    3、调用 requestPermissions() 去申请权限
+       3.1、申请成功，直接做自己的操作。
+       3.2、申请失败，再去判断 shouldShowRequestPermissionRationale ,
+            如果返回true，提示权限申请失败；如果返回false，表明用户勾选了“不再提醒”，应该引导用户去设置界面开启权限。
+
+ 六、关于Permission第三方库的使用。
+     1、AndPermission——https://github.com/yanzhenjie/AndPermission
+     2、RxPermissions——https://github.com/tbruyelle/RxPermissions
+     3、PermissionsDispatcher——https://github.com/permissions-dispatcher/PermissionsDispatcher
+

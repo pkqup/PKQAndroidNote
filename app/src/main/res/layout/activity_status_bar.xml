@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <ImageView
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    </ImageView>
+
+    <LinearLayout
+        android:id="@+id/need_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_change_color"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="50dp"
+            android:padding="16dp"
+            android:text="Change StatusBar Color" />
+
+
+        <CheckBox
+            android:id="@+id/chb_translucent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="4dp"
+            android:text="Translucent" />
+
+        <TextView
+            android:id="@+id/tv_status_alpha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textColor="@color/colorAccent"
+            android:textSize="24sp" />
+
+        <SeekBar
+            android:id="@+id/sb_change_alpha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>

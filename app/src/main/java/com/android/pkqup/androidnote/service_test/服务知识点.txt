@@ -1,0 +1,186 @@
+一、描述
+    Service通常总是称之为“后台服务”，其中“后台”一词是相对于前台而言的，具体是指其本身的运行并不依赖于用户可视的UI界面；
+    因此，从实际业务需求上来理解，Service的适用场景应该具备以下条件：
+    1、并不依赖于用户可视的UI界面（当然，这一条其实也不是绝对的，如前台Service就是与Notification界面结合使用的）；
+    2、具有较长时间的运行特性。
+
+二、Service特性
+    1、Service本身都是运行在其所在进程的主线程（如果Service与Clinet同属于一个进程，则是运行于UI线程），但Service一般都是需要进行”长期“操作，所以经常写法是在自定义Service中处理”长期“操作时需要新建线程，以免阻塞UI线程或导致ANR；
+
+    2、Service一旦创建，需要停止时都需要显示调用相应的方法（startService需要调用stopService(..)或Service本身调用stopSelf(..)，
+       bindService需要调用unbindService(..)），否则对于startService将处于一直运行状态，对于bindService，当Client生命周期结束时也将因此问题。
+       也就是说，Service执行完毕后，必须人为的去停止它。
+
+三、startService
+    startService(..)启动Service后，此时Service的生命周期与Client本身的什么周期是没有任何关系的
+
+    1、创建Service子类，继承自Service
+
+    2、在AndroidManifest文件中注册Service
+       项目中的每一个Service都必须在AndroidManifest.xml中注册才能生效。
+
+    3、启动Service
+       当第一次启动Service的时候，会调用该Service中的onCreate()和onStartCommand(Intent intent, int flags, int startId)方法。
+       若再次启动Service，onCreate()不会被调用，只有onStartCommand(Intent intent, int flags, int startId)方法才会调用。
+       其中参数flags默认情况下是0，对应的常量名为START_STICKY_COMPATIBILITY。startId是一个唯一的整型，用于表示此次Client执行startService(...)的请求请求标识，
+       在多次startService(...)的情况下，呈现0,1,2....递增。
+
+    4、销毁Service
+       无论多少次的startService，只需要一次stopService()即可将此Service终止，执行onDestroy()函数
+       （其实很好理解，因为onDestroy()与onCreate()回调是相对的）。
+
+    5、注意点
+       5.1、当用户强制kill掉进程时，onDestroy()是不会执行的。
+       5.2、对于同一个Service，Service实例一次永远只存在一个，而不管Client是否是相同的组件，也不管Client是否处于相同的进程中。
+       5.3、Service通过startService(..)启动Service后，此时Service的生命周期与Client本身的什么周期是没有任何关系的，只有Client调用stopService(..)或Service本身调用stopSelf(..)才能停止此Service。
+            当然，当用户强制kill掉Service进程或系统因内存不足也可能kill掉此Service。
+       5.4、Client A 通过startService(..)启动Service后，可以在其他Client（如Client B、Client C）通过调用stopService(..)结束此Service。
+       5.5、Client调用stopService(..)时，如果当前Service没有启动，也不会出现任何报错或问题，也就是说，stopService(..)无需做当前Service是否有效的判断。
+       5.6、当Service需要运行在单独的进程中，AndroidManifest.xml声明时需要通过android:process指明此进程名称，
+            当此Service需要对其他App开放时，android:exported属性值需要设置为true(当然，在有intent-filter时默认值就是true)。
+            <service
+                 android:name=".MyService"
+                 android:exported="true"
+                 android:process=":MyProcess" >
+                 <intent-filter>
+                     <action android:name="action_flag" />
+                 </intent-filter>
+            </service>
+
+四、bindService
+    bindService的主要特性在于Service的生命周期是依附于Client的生命周期的，当Client不存在时，bindService将执行onDestroy，
+    同时通过Service中的Binder对象可以较为方便进行Client-Service通信。Bound Service一般使用过程如下：
+    1、创建Service子类，继承自Service
+       并重写onBind(Intent intent)方法，此方法中需要返回具体的Binder对象。
+
+    2、Client通过实现ServiceConnection接口来自定义ServiceConnection，
+       并通过bindService (Intent service, ServiceConnection sc, int flags)方法将Service绑定到此Client上；
+
+    3、自定义的 ServiceConnection 中实现 onServiceConnected(ComponentName name, IBinder binder)方法，获取Service端Binder实例；
+
+    4、通过获取的Binder实例进行Service端其他公共方法的调用，以完成Client-Service通信；
+
+    5、当Client在恰当的生命周期（如onDestroy等）时，此时需要解绑之前已经绑定的Service，通过调用函数unbindService(ServiceConnection sc)。
+
+    6、注意点
+       6.1、bindService()会调用Service的与onCreate()和 onBind()方法，不会调用和onStartCommand()方法，但是会调用ServiceConnection中的onServiceConnected()方法。
+       6.2、unbindService()销毁服务会调用Service的onUnBind()方法。
+       6.3、如果关闭当前Activity，必须在Activity的 onDestroy()中取消绑定Service。
+       6.4、不可重复调用unbindService()取消绑定，否则会出现 Service not registered 异常。
+       6.5、当Activity关闭后，如果没有调用unbindService()取消绑定服务，此Service会自动调用 onDestroy()方法，但是这种方式是不安全的，建议主动取消绑定。
+
+五、startService和bindService交叉使用
+    如果既点击了Start Service按钮，又点击了Bind Service按钮会怎么样呢？
+    这个时候你会发现，不管你是单独点击Stop Service按钮还是Unbind Service按钮，Service都不会被销毁，
+    必需将两个按钮都点击一下，Service才会被销毁。
+    也就是说，点击Stop Service按钮只会让Service停止，点击Unbind Service按钮只会让Service和Activity解除关联，
+    一个Service必须要在既没有和任何Activity关联又处于停止状态的时候才会被销毁。
+
+
+六、Service和Thread
+    实际上Service和Thread是没有任何关系的，Service实际上就运行在主线程上。
+    1、Android的后台就是指，它的运行是完全不依赖UI的。即使Activity被销毁，或者程序被关闭，只要进程还在，Service就可以继续运行。
+       比如说一些应用程序，始终需要与服务器之间始终保持着心跳连接，就可以使用Service来实现。可以在Service中再创建一个子线程，然后在这里去处理耗时逻辑就没问题了。
+
+    2、Activity很难对Thread进行控制，当Activity被销毁之后，就没有任何其它的办法可以再重新获取到之前创建的子线程的实例。
+       而且在一个Activity中创建的子线程，另一个Activity无法对其进行操作。但是Service就不同了，所有的Activity都可以与Service进行关联，
+       然后可以很方便地操作其中的方法，即使Activity被销毁了，之后只要重新与Service建立关联，就又能够获取到原有的Service中Binder的实例。
+       因此，使用Service来处理后台任务，Activity就可以放心地finish，完全不需要担心无法对后台任务进行控制的情况。
+
+    3、一个比较标准的Service就可以写成：
+        @Override
+        public int onStartCommand(Intent intent, int flags, int startId) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // 开始执行后台任务
+                }
+            }).start();
+            return super.onStartCommand(intent, flags, startId);
+        }
+
+        //或者
+        class MyBinder extends Binder {
+            public void startDownload() {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 执行具体的下载任务
+                    }
+                }).start();
+            }
+        }
+
+七、创建前台Service
+    前台服务是那些被认为用户知道（用户所认可的）且在系统内存不足的时候不允许系统杀死的服务。前台服务必须给状态栏提供一个通知，
+    它被放到正在运行(Ongoing)标题之下——这就意味着通知只有在这个服务被终止或从前台主动移除通知后才能被解除。
+
+    Service几乎都是在后台运行的，Service的系统优先级还是比较低的，当系统出现内存不足情况时，就有可能会回收掉正在后台运行的Service。
+    如果你希望Service可以一直保持运行状态，而不会由于系统内存不足的原因导致被回收，就可以考虑使用前台Service。
+    前台Service和普通Service最大的区别就在于，它会一直有一个正在运行的图标在系统的状态栏显示，下拉状态栏后可以看到更加详细的信息，非常类似于通知的效果。
+
+    ex:App中的音乐播放服务应被设置在前台运行(前台服务)——在App后台运行时，便于用户明确知道它的当前操作、在状态栏中指明当前歌曲信息、提供对应操作。
+            //创建前台服务
+            private void createForegroundService() {
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this,0,notificationIntent,0);
+                Notification.Builder builder = new Notification.Builder(getApplicationContext());
+                builder.setContentTitle("***服务");
+                builder.setContentText("请勿关闭，***");
+                builder.setSmallIcon(R.mipmap.service_icon);
+                builder.setContentIntent(pendingIntent);
+                Notification notification = builder.build();
+
+                //启动前台服务
+                startForeground(1,notification);
+            }
+
+            @Override
+            public void onDestroy() {
+                super.onDestroy();
+                //停止前台服务
+                stopForeground(true);
+            }
+
+八、IntentService
+    1、IntentService是继承于Service并处理异步请求的一个类。
+       注意这句话——“继承于Service”和“处理异步请求”。
+       “继承于Service”表示他是一个服务，我们知道Service是存在于主线程的，它之中不能存在耗时操作，否则的话回应起ANR，
+       因此便有了IntentService——这个封装了HandlerThread和Handler的特殊Service。
+
+    2、特性：
+       2.1、IntentService中只有“一个”默认的HandlerThread线程用来处理异步任务;
+       2.2、默认直接实现了onBind()方法，直接返回null，并定义了抽象方法onHandlerIntent()，用户自定义子类时，需要实现此方法；
+       2.3、onHandlerIntent()主要就是用来处于相应的“长期”任务的，并且已经自动在新的线程中，用户无语自定义新线程；
+       2.4、当“长期”任务执行完毕后（也就是onHandlerIntent()执行完毕后），此IntentService将自动结束，无需人为调用方法使其结束；
+       2.5、IntentService处理任务时，也是按照队列的方式一个个去处理，而非真正意义上的多线程并发方式。
+       2.6、onHandleIntent(Intent)发生在子线程，不能直接更新UI，需要先把结果发到Activity中
+       2.7、提交的任务顺序执行，如果一个任务A正在IntentService中执行，此时发送另一个异步任务B到IntentService中，那么必须等到任务A执行完之后任务B才会开始执行
+
+    3、使用IntentService的好处：
+       3.1、我们省去了在 Service 中手动开线程的麻烦，
+       3.2、当操作完成时，我们不用手动停止 Service。
+
+    3、使用：
+       见MyIntentService
+
+
+九、远程服务，即AIDL实现进程间通信
+    Android Interface Definition Language，也就是Android接口定义语言。是的，首先我们知道的第一点就是：AIDL是一种语言。
+    实现步骤：
+    1、创建AIDL文件，会自动生成aidl文件。
+    2、在远程service中创建IMyAIDLService.Stub实例，作为IBinder对象在onBind()方法中返回。
+
+
+
+
+
+
+
+
+
+
+
+
+
+

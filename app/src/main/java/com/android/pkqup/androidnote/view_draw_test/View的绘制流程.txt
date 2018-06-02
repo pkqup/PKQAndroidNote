@@ -1,0 +1,236 @@
+
+一、Activity、Window、PhoneWindow、DecorView、View的关系
+    1、Activity：具体的一个界面
+    2、Window：是Activity的一个成员变量，是一个抽象类，提供了绘制窗口的一组通用API。可以将之理解为一个载体，各种View在这个载体上显示。
+    3、PhoneWindow：Window的唯一子类，是Window类的具体实现，即我们可以通过该类具体去绘制窗口。
+    4、DecorView：DecorView继承自FrameLayout，是PhoneWindow的一个成员变量，是所有应用窗口(Activity界面)的根View。
+
+
+二、一切从 Activity.setContentView(int resId) 说起
+    1、Activity中 setContentView()源码
+          public void setContentView(int layoutResID) {
+              getWindow().setContentView(layoutResID);  //调用了PhoneWindow的setContentView()方法
+          }
+
+          public Window getWindow() {
+              return mWindow;   //Window对象，本质上是一个PhoneWindow对象
+          }
+
+    2、PhoneWindow.setContentView() 源码
+        @Override
+        public void setContentView(int layoutResID) {
+            //是否是第一次调用setContentView方法， 如果是第一次调用，则mDecor和mContentParent对象都为空
+            if (mContentParent == null) {
+                installDecor();//在此方法中创建 mContentParent
+            } else {
+                mContentParent.removeAllViews();//mContentParent是一个ViewGroup
+            }
+            mLayoutInflater.inflate(layoutResID, mContentParent);//以mContentParent作为根视图，填充布局
+            final Callback cb = getCallback();
+            if (cb != null) {
+                cb.onContentChanged();//通知布局完成的回调
+            }
+        }
+
+    3、 PhoneWindow.installDecor()，在这个方法中所需的View已经准备完毕
+        private void installDecor() {
+            if (mDecor == null) {
+                //mDecor为空，则创建一个Decor对象
+                mDecor = generateDecor();
+                mDecor.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+                mDecor.setIsRootNamespace(true);
+            }
+            if (mContentParent == null) {
+                //generateLayout()方法会根据窗口的风格修饰，选择对应的修饰布局文件
+                //并且将id为content(android:id="@+id/content")的FrameLayout赋值给mContentParent
+                mContentParent = generateLayout(mDecor);
+                //...
+        }
+
+        //创建 DecorView
+        protected DecorView generateDecor() {
+            return new DecorView(getContext(), -1);
+        }
+
+        //创建 mContentParent
+        protected ViewGroup generateLayout(DecorView decor) {
+            //1、根据requestFeature()和Activity节点的android:theme="" 设置好 features值
+            //2、根据设定好的 features值，即特定风格属性，选择不同的窗口修饰布局文件
+            int layoutResource;  //窗口修饰布局文件
+            int features = getLocalFeatures();
+            // System.out.println("Features: 0x" + Integer.toHexString(features));
+            if ((features & ((1 << FEATURE_LEFT_ICON) | (1 << FEATURE_RIGHT_ICON))) != 0) {
+                if (mIsFloating) {
+                    layoutResource = com.android.internal.R.layout.dialog_title_icons;
+                } else {
+                    layoutResource = com.android.internal.R.layout.screen_title_icons;
+                }
+                // System.out.println("Title Icons!");
+            } else if ((features & ((1 << FEATURE_PROGRESS) | (1 << FEATURE_INDETERMINATE_PROGRESS))) != 0) {
+                // Special case for a window with only a progress bar (and title).
+                // XXX Need to have a no-title version of embedded windows.
+                layoutResource = com.android.internal.R.layout.screen_progress;
+                // System.out.println("Progress!");
+            }
+            //...
+
+            //3 选定了窗口修饰布局文件 ，添加至DecorView对象里，并且指定mcontentParent值
+            View in = mLayoutInflater.inflate(layoutResource, null);
+            decor.addView(in, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+
+            ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);
+            if (contentParent == null) {
+                throw new RuntimeException("Window couldn't find content container view");
+            }
+
+            if ((features & (1 << FEATURE_INDETERMINATE_PROGRESS)) != 0) {
+                ProgressBar progress = getCircularProgressBar(false);
+                if (progress != null) {
+                    progress.setIndeterminate(true);
+                }
+            }
+            //...
+            return contentParent;
+        }
+
+三、View的绘制流程
+    1、整个View树的绘图流程是在 ViewRootImpl 类的 performTraversals()方法开始的，该函数做的执行过程主要是根据之前设置的状态，
+       判断是否重新计算视图大小(measure)、是否重新放置视图的位置(layout)、以及是否重绘 (draw)，其核心也就是通过判断来选择顺序执行这三个方法中的哪个.
+        private void performTraversals() {
+            ......
+            //最外层的根视图的widthMeasureSpec和heightMeasureSpec由来
+            //lp.width和lp.height在创建ViewGroup实例时等于MATCH_PARENT
+            int childWidthMeasureSpec = getRootMeasureSpec(mWidth, lp.width);
+            int childHeightMeasureSpec = getRootMeasureSpec(mHeight, lp.height);
+            ......
+            mView.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+            ......
+            mView.layout(0, 0, mView.getMeasuredWidth(), mView.getMeasuredHeight());
+            ......
+            mView.draw(canvas);
+            ......
+        }
+
+    2、View 的 measure() 源码分析
+        //final方法，子类不可重写
+        public final void measure(int widthMeasureSpec, int heightMeasureSpec) {
+            ......
+            //回调onMeasure()方法
+            onMeasure(widthMeasureSpec, heightMeasureSpec);
+            ......
+        }
+
+      //View的onMeasure默认实现方法
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
+                    getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
+        }
+
+       measure总结：
+           View的measure方法是final的，不允许重载，View子类只能重载onMeasure来完成自己的测量逻辑。
+           ViewGroup无 measure方法,但是提供了measureChild，measureChild和measureChildWithMargins方法，简化了父子View的尺寸计算。
+           使用View的getMeasuredWidth()和getMeasuredHeight()方法来获取View测量的宽高，必须保证这两个方法在onMeasure流程之后被调用才能返回有效值。
+
+    3、View 的layout() 源码分析
+       ViewGroup的layout方法：
+          @Override
+            public final void layout(int l, int t, int r, int b) {
+                ......
+                super.layout(l, t, r, b);//调用了父类（即View）的layout
+                ......
+            }
+
+       View的layout方法：(实际上还是调用onLayout)
+         public void layout(int l, int t, int r, int b) {
+                ......
+                //实质都是调用setFrame方法把参数分别赋值给mLeft、mTop、mRight和mBottom这几个变量
+                //判断View的位置是否发生过变化，以确定有没有必要对当前的View进行重新layout
+                boolean changed = isLayoutModeOptical(mParent) ?
+                        setOpticalFrame(l, t, r, b) : setFrame(l, t, r, b);
+                //需要重新layout
+                if (changed || (mPrivateFlags & PFLAG_LAYOUT_REQUIRED) == PFLAG_LAYOUT_REQUIRED) {
+                    //回调onLayout
+                    onLayout(changed, l, t, r, b);
+                    ......
+                }
+                ......
+            }
+
+          ViewGroup的onLayout方法：(是一个抽象方法)
+             @Override
+              protected abstract void onLayout(boolean changed,
+                      int l, int t, int r, int b);
+
+          View的onLayout方法：(是一个空方法)
+             protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+             }
+
+          以ViewGroup子类 LinearLayout为例
+            public class LinearLayout extends ViewGroup {
+                @Override
+                protected void onLayout(boolean changed, int l, int t, int r, int b) {
+                    if (mOrientation == VERTICAL) {
+                        layoutVertical(l, t, r, b);
+                    } else {
+                        layoutHorizontal(l, t, r, b);
+                    }
+                }
+            }
+
+         layout总结：
+         1、measure操作完成后得到的是对每个View经测量过的measuredWidth和measuredHeight，
+            layout操作完成之后得到的是对每个View进行位置分配后的mLeft、mTop、mRight、mBottom，这些值都是相对于父View来说的。
+            即：measure确定宽高，layout确定上下左右的位置
+         2、使用View的getWidth()和getHeight()方法来获取View测量的宽高，必须保证这两个方法在onLayout流程之后被调用才能返回有效值。
+
+
+四、View 或 ViewGroup 的布局过程
+    1、测量阶段，measure() 方法被父 View 调用，在 measure() 中做一些准备和优化工作后，调用 onMeasure() 来进行实际的自我测量。
+       onMeasure() 做的事，View 和 ViewGroup 不一样：
+       1.1、View：View 在 onMeasure() 中会计算出自己的尺寸然后保存；
+       1.2、ViewGroup：ViewGroup 在 onMeasure() 中会调用所有子 View 的 measure() 让它们进行自我测量，
+            并根据子 View 计算出的期望尺寸来计算出它们的实际尺寸和位置（实际上 99.99% 的父 View 都会使用子 View
+            给出的期望尺寸来作为实际尺寸）然后保存。同时，它也会根据子 View 的尺寸和位置来计算出自己的尺寸然后保存；
+
+    2、布局阶段，layout() 方法被父 View 调用，在 layout() 中它会保存父 View 传进来的自己的位置和尺寸，
+       并且调用 onLayout() 来进行实际的内部布局。onLayout() 做的事， View 和 ViewGroup 也不一样：
+       2.1、View：由于没有子 View，所以 View 的 onLayout() 什么也不做。
+       2.2、ViewGroup：ViewGroup 在 onLayout() 中会调用自己的所有子 View 的 layout() 方法，把它们的尺寸和位置传给它们，
+            让它们完成自我的内部布局。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

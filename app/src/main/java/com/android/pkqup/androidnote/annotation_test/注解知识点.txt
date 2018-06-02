@@ -1,0 +1,115 @@
+
+
+一、关于原数据的说明
+    元数据由 metadata 译来，所谓的元数据就是“关于数据的数据”,更通俗的说就是描述数据的数据，对数据及信息资源的描述性信息.比如说一个文本文件,有创建时间,创建人,文件大小等数据,这都可以理解为是元数据.
+
+    在java中,元数据以标签的形式存在java代码中,它的存在并不影响程序代码的编译和执行，通常它被用来生成其它的文件或运行时知道被运行代码的描述信息。java当中的javadoc和注解都属于元数据.
+
+
+二、什么是注解
+    注解（Annotation），也叫元数据。一种代码级别的说明。它是JDK1.5及以后版本引入的一个特性，与类、接口、枚举是在同一个层次。它可以声明在包、类、字段、方法、局部变量、方法参数等的前面，用来对这些元素进行说明，注释。
+    作用分类：
+    1、编写文档：通过代码里标识的元数据生成文档【生成doc文档】
+    2、编译检查：通过代码里标识的元数据让编译器能够实现基本的编译检查【Override】
+    3、代码分析：通过代码里标识的元数据对代码进行分析【使用反射】
+
+
+三、四种元注解
+    四个元注解分别是：@Target,@Retention,@Documented,@Inherited ，再次强调下元注解是java API提供，是专门用来定义注解的注解，其作用分别如下：
+    1、@Target 表示该注解用于什么地方，可能的值在枚举类 ElemenetType 中，包括：
+          @Target(ElementType.TYPE) ----------------------------用于接口(注解本质上也是接口),类,枚举
+          @Target(ElementType.FIELD) 	------------------------用于字段,枚举常量
+          @Target(ElementType.METHOD) --------------------------用于方法
+          @Target(ElementType.PARAMETER) -----------------------用于方法参数
+          @Target(ElementType.CONSTRUCTOR) ---------------------用于构造方法
+          @Target(ElementType.LOCAL_VARIABLE) ------------------用于局部变量
+          @Target(ElementType.ANNOTATION_TYPE) -----------------用于注解
+          @Target(ElementType.PACKAGE) -------------------------用于包
+
+    2、@Retention 表示在什么级别保存该注解信息。可选的参数值在枚举类型 RetentionPolicy 中，包括：
+          RetentionPolicy.SOURCE  ------------------------------注解将被编译器丢弃
+          RetentionPolicy.CLASS   ------------------------------注解在class文件中可用，但会被VM丢弃
+          RetentionPolicy.RUNTIME ------------------------------将在运行期也保留注释，因此可以通过反射机制读取注解的信息。
+
+    3、@Documented 将此注解包含在 javadoc 中 ，它代表着此注解会被javadoc工具提取成文档。在doc文档中的内容会因为此注解的信息内容不同而不同。相当与@see,@param 等。
+
+    4、@Inherited 允许子类继承父类中的注解。
+
+
+四、常见的系统注解
+    1、@Override ：用于修饰方法,表示此方法重写了父类方法。
+       它用作标注方法,说明被标注的方法重写了父类的方法,其功能类似断言.如果在一个没有重写父类方法的方法上使用该注解,java编译器将会以一个编译错误提示。
+
+    2、@Deprecated：用于修饰方法,表示此方法已经过时。
+
+    3、@SuppressWarnnings：该注解用于告诉编译器忽视某类编译警告。
+
+
+五、自定义注解
+    1、自定义注解的写法：注解的关键字为 @interface，本质上注解就是接口。
+       public @interface AnnotationName {
+             ...
+             定义体
+             ...
+       }
+
+    2、注意点：
+       2.1、只能使用 public 或者默认的 default 两个权限修饰符;
+       2.2、配置参数的类型只能使用基本类型(byte,boolean,char,short,int,long,float,double)和String,Enum,Class,annotation;
+       2.3、对于只含有一个配置参数的注解,参数名建议设置中value,即方法名为value;
+       2.4、配置参数一旦设置,其参数值必须有确定的值,要不在使用注解的时候指定,要不在定义注解的时候使用default为其设置默认值,对于非基本类型的参数值来说,其不能为null。
+       ex:
+            @Documented
+            @Target(ElementType.CONSTRUCTOR)
+            @Retention(RetentionPolicy.RUNTIME)
+            public @interface UserMeta {
+                public int id() default 0;
+
+                public String name() default "";
+
+                public int age() default ;
+            }
+
+六、注解处理器（编译时注解处理器、运行时注解处理）
+    要想注解发挥实际作用,需要我们为注解编写相应的注解处理器.根据注解的特性,注解处理器可以分为运行时注解处理和编译时注解处理器。
+    运行时处理器需要借助反射机制实现,而编译时处理器则需要借助APT来实现。
+    ButterKnife的实现属于编译时注解。
+    EventBus的实现属于运行时注解。
+
+
+七、编译时注解处理器——Annotation Processor Tool 简称APT
+    以ButterKnife依赖方式为例：
+        compile 'com.jakewharton:butterknife:8.8.1'
+        annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    annotationProcessor：只在编译的时候执行依赖的库，但是库最终不打包到apk中，
+    编译库中的代码没有直接使用的意义，也没有提供开放的api调用，最终的目的是得到编译库中生成的文件，供我们调用。
+
+    1、编写一个编译时注解处理器主要分两步：
+       1.1、编写自定义的注解。
+       1.2、继承AbstractProcessor，实现自己的注解处理器；
+       1.3、创建resources/META-INF.services目录，在这个目录下新建javax.annotation.processing.Processor文件，并注册注解处理器。
+       1.4、把 apt module打成jar包。
+
+    2、见 aptlib 的例子。
+
+
+八、运行时注解处理器
+    java反射机制java.lang.reflect包,该包中的所有api都支持读取运行时Annotation的能力,即属性为@Retention(RetentionPolicy.RUNTIME)的注解.
+
+    在java.lang.reflect中的AnnotatedElement接口是所有程序元素的(Class,Method)父接口,我们可以通过反射获取到某个类的AnnotatedElement对象,进而可以通过该对象提供的方法访问Annotation信息,常用的方法如下:
+
+    1、<T extends Annotation> T getAnnotation(Class<T> annotationClass) 	返回该元素上存在的制定类型的注解
+    2、Annotation[] getAnnotations() 	返回该元素上存在的所有注解
+    3、default <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) 	返回该元素指定类型的注解
+    4、default <T extends Annotation> T getDeclaredAnnotation(Class<T> annotationClass) 	返回直接存在与该元素上的所有注释
+    5、default <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) 	返回直接存在该元素岸上某类型的注释
+    6、Annotation[] getDeclaredAnnotations() 	返回直接存在与该元素上的所有注释
+
+    ex:
+    1、创建一个自定义注解 UserMeta
+       该注解类作用于构造方法，并在运行时存在，这样我们就可以在运行时通过反射获取注解进而为User实例设值。
+    2、定义一个实体类User。希望可以通过 @UserMeta(id=1,name="dong",age = 10)注解 为设置User实例的默认值。
+    3、定义运行时注解处理器 AnnotationProcessor 。
+    4、在运行时调用 AnnotationProcessor 的初始化方法。
+
+

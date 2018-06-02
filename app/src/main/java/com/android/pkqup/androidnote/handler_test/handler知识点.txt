@@ -1,0 +1,291 @@
+
+
+一、从源码分析Handler
+    1、APP的入口 ActivityThread 类的 main()方法
+       在main方法中调用了 Looper.prepareMainLooper();
+         public static void main(String[] args) {
+                //....省略
+                Looper.prepareMainLooper();
+
+                ActivityThread thread = new ActivityThread();
+                thread.attach(false);
+
+                if (sMainThreadHandler == null) {
+                    sMainThreadHandler = thread.getHandler();
+                }
+
+                if (false) {
+                    Looper.myLooper().setMessageLogging(new
+                            LogPrinter(Log.DEBUG, "ActivityThread"));
+                }
+
+                // End of event ActivityThreadMain.
+                Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);
+                Looper.loop();
+
+                throw new RuntimeException("Main thread loop unexpectedly exited");
+            }
+
+    2、Looper.prepareMainLooper()中调用了  prepare(false);方法
+        public static void prepareMainLooper() {
+            prepare(false);
+            synchronized (Looper.class) {
+                if (sMainLooper != null) {
+                    throw new IllegalStateException("The main Looper has already been prepared.");
+                }
+                sMainLooper = myLooper();
+            }
+        }
+
+        //quitAllowed 表示是否可以退出此 Looper
+        private static void prepare(boolean quitAllowed) {
+            if (sThreadLocal.get() != null) {
+                throw new RuntimeException("Only one Looper may be created per thread");
+            }
+            sThreadLocal.set(new Looper(quitAllowed));
+        }
+
+    3、prepare(false)方法中调用 sThreadLocal.set(new Looper(quitAllowed));
+       完成了 ThreadLocal和 Looper的绑定，即当前线程和Looper绑定
+
+    4、Looper的构造方法中 初始化了 MessageQueue
+        private Looper(boolean quitAllowed) {
+            mQueue = new MessageQueue(quitAllowed);
+            mThread = Thread.currentThread();
+        }
+
+    5、以上四步完成了 Looper、MessageQueue和ThreadLocal的初始化，
+
+    6、在main()方法的最后调用了 Looper.loop()方法，这个方法内部是一个死循环，这个时候主线程的消息处理机制就运行起来了。
+      public static void loop() {
+            final Looper me = myLooper();
+            //...省略
+            for (;;) {
+                Message msg = queue.next(); // might block可能阻塞，queue.next()取出消息
+                //...省略
+                final long start = (slowDispatchThresholdMs == 0) ? 0 : SystemClock.uptimeMillis();
+                final long end;
+                try {
+                    msg.target.dispatchMessage(msg);//在这里由target（即handler）分发消息
+                    end = (slowDispatchThresholdMs == 0) ? 0 : SystemClock.uptimeMillis();
+                } finally {
+                    if (traceTag != 0) {
+                        Trace.traceEnd(traceTag);
+                    }
+                }
+                //...省略
+                msg.recycleUnchecked();
+            }
+        }
+
+    7、创建Handler对象，在handler的构造方法中，如果 mLooper 为空，则会抛出异常
+        注意：在子线程中创建Handler对象时，要先调用  Looper.prepare()方法，完成Looper的初始化，从源码中分析，每个线程只允许有一个Looper。
+         public Handler() {
+             if (FIND_POTENTIAL_LEAKS) {
+                 final Class<? extends Handler> klass = getClass();
+                 if ((klass.isAnonymousClass() || klass.isMemberClass() || klass.isLocalClass()) &&
+                         (klass.getModifiers() & Modifier.STATIC) == 0) {
+                     Log.w(TAG, "The following Handler class should be static or leaks might occur: " +
+                         klass.getCanonicalName());
+                 }
+             }
+             mLooper = Looper.myLooper();
+             if (mLooper == null) {
+                 throw new RuntimeException(
+                     "Can't create handler inside thread that has not called Looper.prepare()");
+             }
+             mQueue = mLooper.mQueue;
+             mCallback = null;
+         }
+
+    8、Handler发送消息，最终会调用到sendMessageAtTime(Message msg, long uptimeMillis)方法，
+       uptimeMillis参数则表示发送消息的时间，它的值等于自系统开机到当前时间的毫秒数再加上延迟时间，SystemClock.uptimeMillis() + delayMillis
+       如果你调用的不是sendMessageDelayed()方法，延迟时间就为0。
+
+        public final boolean sendMessageDelayed(Message msg, long delayMillis){
+            if (delayMillis < 0) {
+                delayMillis = 0;
+            }
+            return sendMessageAtTime(msg, SystemClock.uptimeMillis() + delayMillis);
+        }
+
+
+        public boolean sendMessageAtTime(Message msg, long uptimeMillis) {
+            MessageQueue queue = mQueue;
+            if (queue == null) {
+                RuntimeException e = new RuntimeException(
+                        this + " sendMessageAtTime() called with no mQueue");
+                Log.w("Looper", e.getMessage(), e);
+                return false;
+            }
+            return enqueueMessage(queue, msg, uptimeMillis);//把消息加入到消息队列(消息入队的方法)
+        }
+
+    9、enqueueMessage(queue, msg, uptimeMillis);//把消息加入到消息队列(消息入队的方法)
+       入队其实就是将所有的消息按时间来进行排序
+
+    10、消息出队方法即  Message msg = queue.next(); // might block可能阻塞，queue.next()取出消息
+        消息处理即    msg.target.dispatchMessage(msg);//在这里由target（即handler）分发消息
+        public void dispatchMessage(Message msg) {
+            if (msg.callback != null) {
+                handleCallback(msg);
+            } else {
+                if (mCallback != null) {
+                    if (mCallback.handleMessage(msg)) {
+                        return;
+                    }
+                }
+                handleMessage(msg);
+            }
+        }
+
+    11、一个标准的异步线程 消息处理写法：
+        class LooperThread extends Thread {
+              public Handler mHandler;
+
+              public void run() {
+                  Looper.prepare();
+
+                  mHandler = new Handler() {
+                      public void handleMessage(Message msg) {
+                          // process incoming messages here
+                      }
+                  };
+
+                  Looper.loop();
+              }
+          }
+
+    12、另外除了发送消息之外，我们还有以下几种方法可以在子线程中进行UI操作：
+        1. Handler的post()方法
+        2. View的post()方法（内部实际上也是调用的 Handler的post()方法）
+        3. Activity的runOnUiThread()方法（内部实际上也是调用的 Handler的post()方法）
+
+        handler.post的源码：
+            public final boolean post(Runnable r)   {
+               return  sendMessageDelayed(getPostMessage(r), 0);
+            }
+
+            private final Message getPostMessage(Runnable r) {
+                Message m = Message.obtain();
+                m.callback = r;  //直接把传入的Runnable对象作为callback
+                return m;
+            }
+
+            在dispatchMessage()方法中，
+            if (msg.callback != null) {
+                handleCallback(msg);
+            }
+
+            private static void handleCallback(Message message) {
+                message.callback.run();//即由Runnable自行处理message
+            }
+
+二、Android中为什么主线程不会因为Looper.loop()里的死循环卡死
+    参考：https://www.zhihu.com/question/34652589
+
+
+三、HandlerThread——可循环子线程
+    1、HandlerThread继承自Thread，它的run()中通过Looper.prepare()创建了消息队列，并通过Looper.loop()开启了消息循环
+        @Override
+        public void run() {
+            mTid = Process.myTid();
+            Looper.prepare();
+            synchronized (this) {
+                mLooper = Looper.myLooper();
+                notifyAll();
+            }
+            Process.setThreadPriority(mPriority);
+            onLooperPrepared();
+            Looper.loop();
+            mTid = -1;
+        }
+   2、使用方法：
+        //1、创建HandlerThread
+        HandlerThread  handlerThread = new HandlerThread("workHandlerThread");
+        handlerThread.start();
+
+        //2、获取获取HandlerThread的Looper
+        Looper looper = handlerThread.getLooper();
+
+        //3、 创建Handler，通过Looper初始化
+        Handler  childHandler = new Handler(looper,mCallback);
+
+        //4、投放异步耗时任务到HandlerThread中
+        // childHandler.sendEmptyMessage(0);
+
+        //4、关闭消息队列，释放线程资源
+        handlerThread.quit() ;
+
+        public class HandlerThreadTestActivity extends BaseActivity {
+            private HandlerThread handlerThread;//子线程
+            private Handler childHandler;//与子线程关联的Handler
+            private Handler.Callback callback = new Handler.Callback() {//子线程处理耗时操作的回调
+                @Override
+                public boolean handleMessage(Message msg) {
+                    return false;
+                }
+            };
+
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                setContentView(R.layout.activity_handler_thread_test);
+                initHandlerThread();
+                getData();
+            }
+
+            private void initHandlerThread() {
+                handlerThread = new HandlerThread("child_thread");  //构造参数为子线程的线程名
+                handlerThread.start();//开启子线程
+                childHandler = new Handler(handlerThread.getLooper(),callback);//初始化子线程的Handler
+            }
+
+            private void getData() {
+                //投放异步耗时任务到HandlerThread中
+                childHandler.sendEmptyMessage(0);
+            }
+
+            @Override
+            protected void onDestroy() {
+                super.onDestroy();
+                //释放资源
+                handlerThread.quit() ;
+            }
+        }
+
+    3、使用HandlerThread的好处
+        1、HandlerThread将loop转到子线程中处理，说白了就是将分担MainLooper的工作量，降低了主线程的压力，使主界面更流畅。
+        2、HandlerThread拥有自己的消息队列，它不会干扰或阻塞UI线程。
+        3、开启一个线程起到多个线程的作用。处理任务是串行执行，按消息发送顺序进行处理
+
+    4、HandlerThread的使用情景
+
+    5、Handler 和  Timer
+
+
+四、IntentService 内部封装的就是 HandlerThread
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

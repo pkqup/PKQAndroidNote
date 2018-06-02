@@ -1,0 +1,39 @@
+
+一、描述
+    在4.4之前状态栏一直是黑色的，在4.4中带来了 windowTranslucentStatus 这一特性，因此可以实现给状态栏设置颜色。
+
+    4.4及其以上都是可以实现沉浸式状态栏效果的，5.0及其以上可以直接在主题中设置颜色，或者调用 Window 类中的 setStatusBarColor(int color) 来实现，这两种方式在5.0上都比较简单。
+
+    如何实现状态栏变色兼容到4.4呢？
+
+
+二、状态栏和布局重叠的原因：
+    activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+    设置了以上的标签后，状态栏和布局就会重叠。
+
+    setFitsSystemWindows(boolean):设置系统是否需要考虑System Bar占据的区域来显示。如果需要的话就会执行 fitSystemWindows(Rect)方法。
+    即设置为true的是时候系统会适应System Bar的区域，让内容不被遮住。
+    fitSystemWindows(Rect)(api level 14):用来调整自身的内容来适应System Bar(不让被System Bar遮住)。
+
+
+三、获取状态栏高度
+        /**
+         * 获取状态栏高度
+         *
+         * @param context context
+         * @return 状态栏高度
+         */
+        private static int getStatusBarHeight(Context context) {
+            //根据资源名称获取资源id
+            int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+            //根据资源id获取值
+            return context.getResources().getDimensionPixelSize(resourceId);
+        }
+
+
+
+
+
+
+
+

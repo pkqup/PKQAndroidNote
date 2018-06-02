@@ -1,0 +1,136 @@
+
+一、生命周期（见图片  fragment_lifecycle.png）
+
+二、使用方法
+       1、静态使用：直接在xml文件中使用 fragment标签
+                <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    xmlns:tools="http://schemas.android.com/tools"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" >
+                    <fragment
+                        android:id="@+id/id_fragment_title"
+                        android:name="com.zhy.zhy_fragments.TitleFragment"//直接对应Fragment类
+                        android:layout_width="fill_parent"
+                        android:layout_height="45dp" />
+                    <fragment
+                        android:layout_below="@id/id_fragment_title"
+                        android:id="@+id/id_fragment_content"
+                        android:name="com.zhy.zhy_fragments.ContentFragment"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent" />
+                </RelativeLayout>
+
+        2、动态使用
+           add()、replace()、remove()、hide()、show()
+           getSupportFragmentManager().beginTransaction().add(R.id.content, new FirstFragment())
+                            .commit();
+
+三、API介绍
+        //根据ID来找到对应的Fragment实例，主要用在静态添加fragment的布局中，因为静态添加的fragment才会有ID
+        1、fragmentManager.findFragmentById();
+
+        //根据TAG找到对应的Fragment实例，主要用于在动态添加的fragment中，根据TAG来找到fragment实例
+        2、fragmentManager.findFragmentByTag();
+
+        //获取所有被ADD进Activity中的Fragment
+        3、fragmentManager.getFragments();
+
+        //替换containerViewId中的fragment实例，注意，它首先把containerViewId中所有fragment删除，然后再add进去当前的fragment
+        4、replace(int containerViewId, Fragment fragment);
+
+        //将一个fragment实例添加到Activity容器的最上层
+        5、add(int containerViewId, Fragment fragment, String tag);
+
+        //从Activity中移除一个Fragment，如果被移除的Fragment没有添加到回退栈，这个Fragment实例将会被销毁。
+        6、remove(Fragment fragment);
+
+        //隐藏当前的Fragment，仅仅是设为不可见，并不会销毁
+        7、hide(Fragment fragment)
+
+        //显示之前隐藏的Fragment
+        8、show(Fragment fragment)
+
+四、Fragment回退栈
+    类似与Android系统为Activity维护一个任务栈，我们也可以通过Activity维护一个回退栈来保存每次Fragment事务发生的变化。
+    如果你将Fragment任务添加到回退栈，当用户点击后退按钮时，将看到上一次的保存的Fragment。
+    一旦Fragment完全从后退栈中弹出，用户再次点击后退键，则退出当前Activity。
+    1、添加方法
+       fragmentTransaction.addToBackStack(String)
+       ex:
+        FragmentTwo fTwo = new FragmentTwo();
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction tx = fm.beginTransaction();
+        tx.replace(R.id.id_content, fTwo, "TWO");
+        tx.addToBackStack(null);
+        tx.commit();
+        把FragmentTwo加入回退栈，再使用replace方法替换，由于FragmentTwo加入回退栈,之前加入的FragmentOne实例不会被销毁。
+
+五、在创建Fragment时要传入参数
+    通过Arguments创建Fragment,不建议通过为Fragment添加带参数的构造函数
+
+    public class ContentFragment extends Fragment  {
+        private String mArgument;
+        public static final String ARGUMENT = "argument";
+
+        @Override
+        public void onCreate(Bundle savedInstanceState)          {
+            super.onCreate(savedInstanceState);
+            // mArgument = getActivity().getIntent().getStringExtra(ARGUMENT);
+            Bundle bundle = getArguments();
+            if (bundle != null)
+                mArgument = bundle.getString(ARGUMENT);
+        }
+
+        /**
+         * 传入需要的参数，设置给arguments
+         * @param argument
+         * @return
+         */
+        public static ContentFragment newInstance(String argument)          {
+            Bundle bundle = new Bundle();
+            bundle.putString(ARGUMENT, argument);
+            ContentFragment contentFragment = new ContentFragment();
+            contentFragment.setArguments(bundle);
+            return contentFragment;
+        }
+    }
+
+六、Fragment、Viewpager、懒加载、FragmentPagerAdapter、FragmentStatePagerAdapter
+    FragmentPagerAdapter：对于不再需要的fragment，选择调用detach方法，仅销毁视图，并不会销毁fragment实例。
+    FragmentStatePagerAdapter：会销毁不再需要的fragment，当当前事务提交以后，会彻底的将fragment从当前Activity的FragmentManager中移除
+
+    懒加载，核心方法是 setUserVisibleHint()
+        @Override
+        public void setUserVisibleHint(boolean isVisibleToUser) {
+               super.setUserVisibleHint(isVisibleToUser);
+                if (isVisibleToUser) {
+                    lazyLoad();
+                }
+        }
+
+
+七、多个Fragment重叠
+    原因1：横竖屏切换，造成Fragment重新实例化。
+    原因2：按下Home键，Activity处于后台，由于内存不足被销毁，重新唤醒时Fragment重新实例化。
+    注：出现的原因是在 API24 之前的 v4包 的源码问题，
+    解决方案：通过检查onCreate的参数Bundle savedInstanceState就可以判断，当前是否发生Activity的重新创建：
+              默认的savedInstanceState会存储一些数据，只有在savedInstanceState==null时，才进行创建Fragment实例：
+                public class MainActivity extends Activity  {
+                    private static final String TAG = "FragmentOne";
+                    private FragmentOne mFOne;
+
+                    @Override
+                    protected void onCreate(Bundle savedInstanceState)  {
+                        super.onCreate(savedInstanceState);
+                        setContentView(R.layout.activity_main);
+                        if(savedInstanceState == null)   {
+                            mFOne = new FragmentOne();
+                            FragmentManager fm = getFragmentManager();
+                            FragmentTransaction tx = fm.beginTransaction();
+                            tx.add(R.id.id_content, mFOne, "ONE");
+                            tx.commit();
+                        }
+                    }
+                }
+
+

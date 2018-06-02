@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+
+
+    <ImageView
+        android:id="@+id/img"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center_horizontal" />
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.android.pkqup.androidnote.widget.RoundImageView
+            android:id="@+id/image0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/photo1"
+            app:sriv_left_bottom_corner_radius="48dip"
+            app:sriv_left_top_corner_radius="16dip"
+            app:sriv_right_bottom_corner_radius="16dip"
+            app:sriv_right_top_corner_radius="0dip" />
+
+        <com.android.pkqup.androidnote.widget.RoundImageView
+            android:id="@+id/image1"
+            android:layout_width="240dp"
+            android:layout_height="240dp"
+            android:layout_marginTop="16dp"
+            app:sriv_border_color="#000000"
+            app:sriv_border_width="4dip" />
+
+        <com.android.pkqup.androidnote.widget.RoundImageView
+            android:id="@+id/image2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+        <com.android.pkqup.androidnote.widget.RoundImageView
+            android:id="@+id/image3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+        </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>

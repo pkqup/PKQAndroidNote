@@ -1,0 +1,23 @@
+package com.android.pkqup.androidnote.generics_test;
+
+/**
+ * Created by LiuCun on 2017/11/20.<br>
+ * Describe
+ */
+
+//此处T可以随便写为任意标识，常见的如T、E、K、V等形式的参数常用于表示泛型
+//在实例化泛型类时，必须指定T的具体类型
+public class GenericsClass<T> {
+
+    //key这个成员变量的类型为T,T的类型由外部指定
+    private T key;
+
+    public GenericsClass(T key) { //泛型构造方法形参key的类型也为T，T的类型由外部指定
+        this.key = key;
+    }
+
+    public T getKey(){ //泛型方法getKey的返回值类型为T，T的类型由外部指定
+        return key;
+    }
+
+}

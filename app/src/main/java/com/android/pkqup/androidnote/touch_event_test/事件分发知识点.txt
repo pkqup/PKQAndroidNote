@@ -1,0 +1,116 @@
+
+一、View的触摸事件
+    ex:以一个按钮为例，同时注册 OnTouchListener 和 OnClickListener
+         button.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        Log.d(TAG, "onTouch execute, action " + event.getAction());
+                        return false;//返回false表示不消费该事件
+                    }
+                });
+
+         button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.d(TAG, "onClick execute");
+                    }
+                });
+
+        点击按钮，打印结果为
+        11-08 01:12:22.460 20448-20448/com.android.pkqup.androidnote D/TouchTestActivity: onTouch execute, action 0
+        11-08 01:12:22.580 20448-20448/com.android.pkqup.androidnote D/TouchTestActivity: onTouch execute, action 1
+        11-08 01:12:22.581 20448-20448/com.android.pkqup.androidnote D/TouchTestActivity: onClick execute
+        结论：onTouch方法优先于onClick，并且onTouch执行了两次;一次是ACTION_DOWN，一次是ACTION_UP
+
+        如果onTouch 返回true，打印结果为
+        11-08 01:14:20.580 20574-20574/com.android.pkqup.androidnote D/TouchTestActivity: onTouch execute, action 0
+        11-08 01:14:20.661 20574-20574/com.android.pkqup.androidnote D/TouchTestActivity: onTouch execute, action 1
+        结论：onTouch方法返回true就认为这个事件被onTouch消费了，因而不会再继续向下传递。
+
+
+二、View事件分发源码分析
+    1、触摸到了任何一个控件，就一定会调用该控件的dispatchTouchEvent方法
+       View中dispatchTouchEvent方法的源码：
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            if (mOnTouchListener != null && (mViewFlags & ENABLED_MASK) == ENABLED &&
+                    mOnTouchListener.onTouch(this, event)) {
+                return true;
+            }
+            return onTouchEvent(event);
+        }
+      可以看出触摸事件最先执行的是nTouchListener监听里的onTouch()方法
+
+    　首先进行三个条件的判断：
+        （1）查看是否给View设置了OnTouchListener()事件；
+        （2）控件是否Enable；（控件默认都是enable的）
+        （3）View里面实现的OnTouchListener监听里的onTouch()方法是否返回true；
+         如果条件都满足，则该事件被消耗掉，不再进入onTouchEvent中处理。否则将事件将交给onTouchEvent方法处理。
+
+    2、 onTouchEvent(event)源码：
+         public boolean onTouchEvent(MotionEvent event) {
+                 //...省略
+                if (clickable || (viewFlags & TOOLTIP) == TOOLTIP) {
+                    switch (action) {
+                        case MotionEvent.ACTION_UP:
+                         //...省略
+                            if (mPerformClick == null) {
+                                mPerformClick = new PerformClick();
+                            }
+                            if (!post(mPerformClick)) {
+                                performClick();
+                            }
+                        case MotionEvent.ACTION_DOWN:
+                         //...省略
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                         //...省略
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                         //...省略
+                            break;
+                    }
+                    return true;//可点击的控件，返回值true，消费掉事件
+                }
+                return false;//不可点击的控件，返回值false，传递给父控件onTouchEvent方法进行处理
+            }
+         在 case MotionEvent.ACTION_UP:调用了 performClick()，里面调用了onClick回调
+            public boolean performClick() {
+               //...省略
+                if (li != null && li.mOnClickListener != null) {
+                    li.mOnClickListener.onClick(this);
+                    result = true;
+                } else {
+                    result = false;
+                }
+                   //...省略
+                return result;
+            }
+
+   3、View的触摸事件方法调用顺序
+        dispatchTouchEvent —> onTouch()回调判断是否消费事件 —> onTouchEvent —> onClick()回调
+
+
+三、ViewGroup事件分发分析
+    三个重要函数：调用顺序见图片
+    1、事件分发：public boolean dispatchTouchEvent(MotionEvent ev)
+    2、事件拦截：public boolean onInterceptTouchEvent(MotionEvent ev)
+       拦截事件，用来决定事件是否传向子View。返回true时，拦截后交给自己的onTouchEvent处理。 返回false时，拦截后交给子View来处理
+    3、事件响应：public boolean onTouchEvent(MotionEvent ev)
+       返回true时，内部处理所有的事件，换句话说，后续事件将继续传递给该view的onTouchEvent()处理
+       返回false时，事件会向上传递，由onTouchEvent来接受，如果最上面View中的onTouchEvent也返回false的话，那么事件就会消失
+
+四、总结
+    1、如果ViewGroup找到了能够处理该事件的View，则直接交给子View处理，自己的onTouchEvent不会被触发；　
+    2、可以通过复写onInterceptTouchEvent(ev)方法，拦截子View的事件（即return true），把事件交给自己处理，则会执行自己对应的onTouchEvent方法。
+    3、子View可以通过调用getParent().requestDisallowInterceptTouchEvent(true); 阻止ViewGroup对其MOVE或者UP事件进行拦截；　　
+    4、ViewGroup默认不拦截任何事件。　
+
+五、补充
+    MotionEvent的四种状态：
+        MotionEvent.ACTION_DOWN　：手指按下屏幕的瞬间（一切事件的开始）
+        MotionEvent.ACTION_MOVE　：手指在屏幕上移动
+        MotionEvent.ACTION_UP　：手指离开屏幕瞬间
+        MotionEvent.ACTION_CANCEL 　：取消手势，一般由程序产生，不会由用户产生
+
+
+

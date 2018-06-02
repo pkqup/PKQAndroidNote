@@ -1,0 +1,66 @@
+一、描述
+    为了在应用程序之间交换数据，Android提供了ContentProvider，它是不同应用程序之间进行数据交换的标准API，
+    当一个应用程序需要把自己的数据暴露给其他程序使用时，该应用程序就可通过提供ContentProvider来实现；
+    其他应用程序就可通过ContentResolver来操作ContentResolver暴露的数据。
+
+    ContentProvider以指定Uri的形式对外提供数据，允许其他应用访问或修改数据；其他应用程序使用ContentResolver根据Uri去访问操作指定数据。
+
+    一旦某个应用程序通过 ContentProvider 暴露了自己的数据操作接口，那么不管该应用程序是否启动，
+    其他应用程序都可通过该接口来操作该应用程序的内部数据，包括增加数据、删除数据、修改数据、查询数据等。
+
+
+二、从源码分析ContentProvider的初始化
+    App进程启动 -> ActivityThread#main() -> ActivityThread#attach() -> ActivityManagerNative#attachApplication() ->
+    ActivityManagerService#attachApplication() -> ActivityManagerService#generateApplicationProvidersLocked() 。
+    generateApplicationProvidersLocked()这个方法，这个方法通过 PackageManager 去获取解析后的应用的清单文件中 provider 信息，
+    为每个 provider 新建 ContentProviderRecord 作为 ActivityManagerService 端的 ContentProvider 表现。
+
+
+
+三、ContentProvider应用内数据共享
+    1、创建数据库类
+       见 DbHelper 类。
+
+    2、自定义 ContentProvider 类
+       见 MyContentProvider 类。
+
+    3、在AndroidManifest文件中注册创建的 ContentProvider类
+       见 AndroidManifest 文件
+
+    4、进程内访问 ContentProvider的数据
+       见 ContentProviderActivity 类。
+
+四、进程间数据共享
+    1、创建数据库类
+       见 DbHelper 类。
+
+    2、自定义 ContentProvider 类
+       见 MyContentProvider 类。
+
+    3、在AndroidManifest文件中注册创建的 ContentProvider类，注意配置权限和外部可使用属性
+       <!-- 声明本应用 可允许通信的权限-->
+       <permission android:name="com.android.pkqup.androidnote.PROVIDER" android:protectionLevel="normal"/>
+
+        <provider
+            android:name=".content_provider_test.MyContentProvider"
+            android:authorities="com.pkqup.android.note"//认证信息
+            android:exported="true"//其他进程可访问（如果其他应用可以访问此ContentProvider，则exported必须为true）
+            android:permission="com.android.pkqup.androidnote.PROVIDER"//自定义权限（也可以不需要）
+            />
+
+    4、在另外一个应用中也需要配置相同的权限
+        <!--自定义权限-->
+        <permission
+            android:name="com.android.pkqup.androidnote.PROVIDER"
+            android:protectionLevel="normal" />
+        <uses-permission android:name="com.android.pkqup.androidnote.PROVIDER"/>
+
+
+
+
+
+
+
+
+
+
