@@ -193,6 +193,58 @@ public class SampleActivity extends Activity {
   }
 ```
 
+##Activity回收后造成Fragment的重叠或者空指针一系列问题
+解决方案：在Activity的onCreate()方法中，删除保存的Fragment
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        //删除保存的Fragment，也可以重写onSaveInstanceState方法不让其保存
+        if (savedInstanceState != null) {
+            savedInstanceState.putParcelable("android:support:fragments", null);
+        }
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_layout);
+        initView();
+        initData();
+    }
+
+    原理参考FragmentActivity的onCreate()方法：
+      protected void onCreate(@Nullable Bundle savedInstanceState) {
+            this.mFragments.attachHost((Fragment)null);
+            super.onCreate(savedInstanceState);
+            FragmentActivity.NonConfigurationInstances nc = (FragmentActivity.NonConfigurationInstances)this.getLastNonConfigurationInstance();
+            if (nc != null && nc.viewModelStore != null && this.mViewModelStore == null) {
+                this.mViewModelStore = nc.viewModelStore;
+            }
+
+            if (savedInstanceState != null) {
+                Parcelable p = savedInstanceState.getParcelable("android:support:fragments");
+                this.mFragments.restoreAllState(p, nc != null ? nc.fragments : null);
+                if (savedInstanceState.containsKey("android:support:next_request_index")) {
+                    this.mNextCandidateRequestIndex = savedInstanceState.getInt("android:support:next_request_index");
+                    int[] requestCodes = savedInstanceState.getIntArray("android:support:request_indicies");
+                    String[] fragmentWhos = savedInstanceState.getStringArray("android:support:request_fragment_who");
+                    if (requestCodes != null && fragmentWhos != null && requestCodes.length == fragmentWhos.length) {
+                        this.mPendingFragmentActivityResults = new SparseArrayCompat(requestCodes.length);
+
+                        for(int i = 0; i < requestCodes.length; ++i) {
+                            this.mPendingFragmentActivityResults.put(requestCodes[i], fragmentWhos[i]);
+                        }
+                    } else {
+                        Log.w("FragmentActivity", "Invalid requestCode mapping in savedInstanceState.");
+                    }
+                }
+            }
+
+            if (this.mPendingFragmentActivityResults == null) {
+                this.mPendingFragmentActivityResults = new SparseArrayCompat();
+                this.mNextCandidateRequestIndex = 0;
+            }
+
+            this.mFragments.dispatchCreate();
+        }
+
+
+
 
 
 

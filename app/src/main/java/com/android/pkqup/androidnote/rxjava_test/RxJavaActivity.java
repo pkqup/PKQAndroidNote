@@ -23,7 +23,9 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
@@ -68,27 +70,27 @@ public class RxJavaActivity extends BaseActivity {
             }
         })
                 .subscribe(new Observer<String>() {
-            // 订阅
-            @Override
-            public void onSubscribe(Disposable d) {
-                KLog.e("-Observer--onSubscribe--");
-            }
+                    // 订阅
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        KLog.e("-Observer--onSubscribe--");
+                    }
 
-            @Override
-            public void onNext(String s) {
-                KLog.e("-Observer--onNext--", s);
-            }
+                    @Override
+                    public void onNext(String s) {
+                        KLog.e("-Observer--onNext--", s);
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                KLog.e("-Observer--onError--");
-            }
+                    @Override
+                    public void onError(Throwable e) {
+                        KLog.e("-Observer--onError--");
+                    }
 
-            @Override
-            public void onComplete() {
-                KLog.e("-Observer--onComplete--");
-            }
-        });
+                    @Override
+                    public void onComplete() {
+                        KLog.e("-Observer--onComplete--");
+                    }
+                });
     }
 
     // 2、just()方式，创建一个Observable并自动调用onNext( )发射数据。
@@ -285,15 +287,15 @@ public class RxJavaActivity extends BaseActivity {
     }
 
     // 二、RxJava的线程调度
-            /*
-             * 在RxJava中, 已经内置了很多线程选项供我们选择, 例如有
-             *
-             * Schedulers.io() 代表io操作的线程, 通常用于网络,读写文件等io密集型的操作
-             * Schedulers.computation()代表CPU计算密集型的操作,例如需要大量计算的操作
-             * Schedulers.newThread() 代表一个常规的新线程
-             * AndroidSchedulers.mainThread()代表Android的主线程
-             *
-             */
+    /*
+     * 在RxJava中, 已经内置了很多线程选项供我们选择, 例如有
+     *
+     * Schedulers.io() 代表io操作的线程, 通常用于网络,读写文件等io密集型的操作
+     * Schedulers.computation()代表CPU计算密集型的操作,例如需要大量计算的操作
+     * Schedulers.newThread() 代表一个常规的新线程
+     * AndroidSchedulers.mainThread()代表Android的主线程
+     *
+     */
 
     // 三、RxJava操作符
     // 1、Map的作用就是对发送的每一个事件应用一个函数, 使得每一个事件都按照指定的函数去变化
@@ -621,5 +623,21 @@ public class RxJavaActivity extends BaseActivity {
                 });
     }
 
+    @OnClick(R.id.bt_multi_upload)
+    void bt_multi_upload() {
+        List<String> list = new ArrayList<>();
+        CompositeDisposable compositeDisposable = new CompositeDisposable();
+        compositeDisposable.add(Observable.fromArray(list)
+                .flatMap(new Function<List<String>, ObservableSource<String>>() {
+                    @Override
+                    public ObservableSource<String> apply(List<String> strings) throws Exception {
+                        return Observable.fromIterable(strings);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread()).subscribe());
+
+
+    }
 
 }
