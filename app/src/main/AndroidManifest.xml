@@ -244,6 +244,9 @@
         <activity
             android:name="com.android.pkqup.androidnote.rxjava_test.RxJavaActivity"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name="com.android.pkqup.androidnote.leakcanary.LeakCanaryActivity"
+            android:theme="@style/AppTheme" />
     </application>
 
 

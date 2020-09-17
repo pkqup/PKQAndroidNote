@@ -1,174 +1,189 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1">
+    <data>
 
-        <LinearLayout
-            android:layout_width="match_parent"
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <ScrollView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:layout_weight="1">
 
-            <Button
-                android:id="@+id/bt_frame"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="帧动画" />
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
 
-            <Button
-                android:id="@+id/bt_tween"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="补间动画" />
+                <Button
+                    android:id="@+id/bt_frame"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="帧动画" />
 
-            <Button
-                android:id="@+id/bt_property"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="属性动画" />
+                <Button
+                    android:id="@+id/bt_tween"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="补间动画" />
 
-            <Button
-                android:id="@+id/bt_physics"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="物理动画" />
+                <Button
+                    android:id="@+id/bt_property"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="属性动画" />
 
-            <Button
-                android:id="@+id/bt_fragment"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="fragment" />
+                <Button
+                    android:id="@+id/bt_physics"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="物理动画" />
 
-            <Button
-                android:id="@+id/bt_handler"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="handler" />
+                <Button
+                    android:id="@+id/bt_fragment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="fragment" />
 
-            <Button
-                android:id="@+id/bt_touch_dispatch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="事件分发" />
+                <Button
+                    android:id="@+id/bt_handler"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="handler" />
 
-            <Button
-                android:id="@+id/bt_view_draw"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="view绘制" />
+                <Button
+                    android:id="@+id/bt_touch_dispatch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="事件分发" />
 
-            <Button
-                android:id="@+id/bt_activity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="activity" />
+                <Button
+                    android:id="@+id/bt_view_draw"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="view绘制" />
 
-            <Button
-                android:id="@+id/bt_broadcast"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="广播" />
+                <Button
+                    android:id="@+id/bt_activity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="activity" />
 
-            <Button
-                android:id="@+id/bt_service"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="service" />
+                <Button
+                    android:id="@+id/bt_broadcast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="广播" />
 
-            <Button
-                android:id="@+id/bt_content_provider"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="content provider" />
-        </LinearLayout>
+                <Button
+                    android:id="@+id/bt_service"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="service" />
+
+                <Button
+                    android:id="@+id/bt_content_provider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="content provider" />
+            </LinearLayout>
 
 
-    </ScrollView>
+        </ScrollView>
 
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1">
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <ScrollView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_weight="1">
 
-            <Button
-                android:id="@+id/bt_permission"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="permission" />
+                android:orientation="vertical">
 
-            <Button
-                android:id="@+id/bt_annotation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="annotation" />
+                <Button
+                    android:id="@+id/bt_permission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="permission" />
 
-            <Button
-                android:id="@+id/bt_generics"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="generics" />
+                <Button
+                    android:id="@+id/bt_annotation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="annotation" />
 
-            <Button
-                android:id="@+id/bt_status_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="status bar" />
+                <Button
+                    android:id="@+id/bt_generics"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="generics" />
 
-            <Button
-                android:id="@+id/bt_screen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="screen" />
+                <Button
+                    android:id="@+id/bt_status_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="status bar" />
 
-            <Button
-                android:id="@+id/bt_okhttp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="okhttp" />
+                <Button
+                    android:id="@+id/bt_screen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="screen" />
 
-            <Button
-                android:id="@+id/bt_retrofit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="retrofit" />
-            <Button
-                android:id="@+id/bt_glide"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="glide" />
-            <Button
-                android:id="@+id/bt_rxjava"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="rxjava" />
-        </LinearLayout>
+                <Button
+                    android:id="@+id/bt_okhttp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="okhttp" />
 
-    </ScrollView>
+                <Button
+                    android:id="@+id/bt_retrofit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="retrofit" />
 
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1">
+                <Button
+                    android:id="@+id/bt_glide"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="glide" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/bt_rxjava"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="rxjava" />
+
+                <Button
+                    android:id="@+id/bt_leakcanary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="leakcanary" />
+            </LinearLayout>
+
+        </ScrollView>
+
+        <ScrollView
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
 
-        </LinearLayout>
+            </LinearLayout>
 
-    </ScrollView>
+        </ScrollView>
 
-</LinearLayout>
+    </LinearLayout>
+</layout>

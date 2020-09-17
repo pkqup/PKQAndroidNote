@@ -1,6 +1,8 @@
 package com.android.pkqup.androidnote.abase;
 
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
+import android.databinding.ViewDataBinding;
 import android.os.Bundle;
 import android.view.View;
 
@@ -13,10 +15,12 @@ import com.android.pkqup.androidnote.animation_test.TweenActivity;
 import com.android.pkqup.androidnote.annotation_test.AnnotationActivity;
 import com.android.pkqup.androidnote.broadcast_receiver_test.BroadcastReceiverActivity;
 import com.android.pkqup.androidnote.content_provider_test.ContentProviderActivity;
+import com.android.pkqup.androidnote.databinding.ActivityMainBinding;
 import com.android.pkqup.androidnote.fragment_test.FragmentTestActivity;
 import com.android.pkqup.androidnote.generics_test.GenericsActivity;
 import com.android.pkqup.androidnote.glide_test.GlideActivity;
 import com.android.pkqup.androidnote.handler_test.HandlerThreadTestActivity;
+import com.android.pkqup.androidnote.leakcanary.LeakCanaryActivity;
 import com.android.pkqup.androidnote.okhttp_test.OkHttpActivity;
 import com.android.pkqup.androidnote.permission_test.PermissionActivity;
 import com.android.pkqup.androidnote.rxjava_retrofit_okhttp_test.RetrofitActivity;
@@ -26,6 +30,7 @@ import com.android.pkqup.androidnote.service_test.ServiceTestOneActivity;
 import com.android.pkqup.androidnote.status_bar_test.StatusBarActivity;
 import com.android.pkqup.androidnote.touch_event_test.TouchTestActivity;
 import com.android.pkqup.androidnote.view_draw_test.ViewDrawTestActivity;
+
 import java.util.List;
 
 public class MainActivity extends BaseActivity {
@@ -38,7 +43,9 @@ public class MainActivity extends BaseActivity {
         //在冷启动后改为默认的样式
         setTheme(R.style.AppTheme);
 
-        setContentView(R.layout.activity_main);
+        ActivityMainBinding viewDataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+
+//        setContentView(R.layout.activity_main);
 
 
         findViewById(R.id.bt_frame).setOnClickListener(new View.OnClickListener() {
@@ -166,6 +173,12 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(MainActivity.this, RxJavaActivity.class));
+            }
+        });
+        findViewById(R.id.bt_leakcanary).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, LeakCanaryActivity.class));
             }
         });
     }
