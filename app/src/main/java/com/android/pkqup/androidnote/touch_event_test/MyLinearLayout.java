@@ -27,19 +27,19 @@ public class MyLinearLayout extends LinearLayout {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        Log.d("MyLinearLayout", "dispatchTouchEvent");
+        Log.d("MyLinearLayout", "dispatchTouchEvent---"+event.getAction());
         return super.dispatchTouchEvent(event);
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        Log.d("MyLinearLayout", "onInterceptTouchEvent");
-        return super.onInterceptTouchEvent(ev);
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        Log.d("MyLinearLayout", "onInterceptTouchEvent--"+event.getAction());
+        return super.onInterceptTouchEvent(event);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.d("MyLinearLayout", "onTouchEvent");
+        Log.d("MyLinearLayout", "onTouchEvent---"+event.getAction());
         return super.onTouchEvent(event);
     }
 

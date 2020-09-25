@@ -2,7 +2,6 @@ package com.android.pkqup.androidnote.abase;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
 import android.os.Bundle;
 import android.view.View;
 

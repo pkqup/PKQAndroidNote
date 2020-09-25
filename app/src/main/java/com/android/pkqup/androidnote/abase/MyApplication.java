@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.support.multidex.MultiDexApplication;
 
+import com.blankj.utilcode.util.AppUtils;
+import com.blankj.utilcode.util.Utils;
 import com.socks.library.KLog;
 
 /**
@@ -26,6 +28,8 @@ public class MyApplication extends MultiDexApplication {
 
         //在这里为应用设置异常处理程序，然后我们的程序才能捕获未处理的异常
         CrashHandler.getInstance().init(this);
+
+        Utils.init(this);
     }
 
     //判断是否是debug模式

@@ -7,6 +7,7 @@ import android.widget.ImageView;
 import com.android.pkqup.androidnote.R;
 import com.android.pkqup.androidnote.abase.BaseActivity;
 import com.android.pkqup.androidnote.widget.RoundImageView;
+import com.bumptech.glide.Glide;
 
 /**
  * Created by LiuCun on 2017/11/30.<br>
@@ -46,7 +47,7 @@ public class GlideActivity extends BaseActivity {
 
         // 直接加载本地图片
         // Glide.with(this).load("/storage/emulated/0/DCIM/Camera/IMG_20170607_055114.jpg").into(img);
-        GlideApp.with(this).asBitmap().load(images[0]).into(img);
+        Glide.with(this).asBitmap().load(images[0]).into(img);
         String cacheSize = GlideCacheUtil.getInstance().getCacheSize(this);
 
         Log.e("--cacheSize---", cacheSize + "");
@@ -64,7 +65,7 @@ public class GlideActivity extends BaseActivity {
         // This is a normal rectangle imageview.
         RoundImageView iv2 = (RoundImageView) findViewById(R.id.image2);
         iv1.setScaleType(ImageView.ScaleType.CENTER);
-        GlideApp.with(this).load(images[2]).into(iv2);
+        Glide.with(this).load(images[2]).into(iv2);
 
         // Of course, you can set round radius in code.
         RoundImageView iv3 = (RoundImageView) findViewById(R.id.image3);
