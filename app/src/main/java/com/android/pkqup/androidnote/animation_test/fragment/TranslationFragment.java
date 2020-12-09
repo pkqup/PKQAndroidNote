@@ -1,7 +1,7 @@
 package com.android.pkqup.androidnote.animation_test.fragment;
 
 import android.os.Bundle;
-import android.support.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;

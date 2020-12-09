@@ -1,6 +1,6 @@
 package com.android.pkqup.androidnote.abase;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 /**
  * Created by LiuCun on 2017/11/7.<br>

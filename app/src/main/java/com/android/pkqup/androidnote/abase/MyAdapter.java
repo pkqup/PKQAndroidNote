@@ -1,8 +1,9 @@
 package com.android.pkqup.androidnote.abase;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by liucun on 2018/5/2.

@@ -1,11 +1,11 @@
 package com.android.pkqup.androidnote.animation_test.fragment;
 
 import android.os.Bundle;
-import android.support.animation.DynamicAnimation;
-import android.support.animation.FlingAnimation;
-import android.support.animation.FloatPropertyCompat;
-import android.support.animation.SpringAnimation;
-import android.support.animation.SpringForce;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.FlingAnimation;
+import androidx.dynamicanimation.animation.FloatPropertyCompat;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

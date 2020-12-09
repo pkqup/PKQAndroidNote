@@ -10,6 +10,9 @@ import android.view.View;
 import com.android.pkqup.androidnote.R;
 import com.android.pkqup.androidnote.abase.BaseActivity;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created by LiuCun on 2017/11/10.<br>
  * Describe
@@ -69,6 +72,8 @@ public class ActivityTestActivity extends BaseActivity {
             }
         });
 
+
+        ExecutorService executorService = Executors.newFixedThreadPool(3);
 
     }
 }

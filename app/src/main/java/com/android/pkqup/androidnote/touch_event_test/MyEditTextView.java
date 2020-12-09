@@ -10,7 +10,7 @@ import android.widget.EditText;
  * @date 2020/9/21 18:28
  * @description
  */
-public class MyEditTextView extends android.support.v7.widget.AppCompatEditText {
+public class MyEditTextView extends androidx.appcompat.widget.AppCompatEditText {
 
 
     public MyEditTextView(Context context) {

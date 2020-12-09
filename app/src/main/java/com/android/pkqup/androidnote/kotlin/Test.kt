@@ -86,3 +86,7 @@ class Test {
         ""
     }
 }
+
+object  User{
+    var a =1
+}

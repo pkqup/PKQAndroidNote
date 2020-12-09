@@ -1,6 +1,6 @@
 package com.android.pkqup.androidnote.rxjava_retrofit_okhttp_test;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import com.android.pkqup.androidnote.abase.MyApplication;
 import com.socks.library.KLog;
 import java.io.File;

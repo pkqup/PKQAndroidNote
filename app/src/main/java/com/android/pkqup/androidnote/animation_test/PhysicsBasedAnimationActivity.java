@@ -1,7 +1,7 @@
 package com.android.pkqup.androidnote.animation_test;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.android.pkqup.androidnote.R;

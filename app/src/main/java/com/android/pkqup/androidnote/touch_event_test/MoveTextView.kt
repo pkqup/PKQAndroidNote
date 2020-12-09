@@ -4,11 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.support.v7.widget.AppCompatTextView
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.LinearLayout
+import androidx.appcompat.widget.AppCompatTextView
 import com.blankj.utilcode.util.BarUtils
 import com.blankj.utilcode.util.ScreenUtils
 import com.blankj.utilcode.util.SizeUtils
@@ -23,7 +23,7 @@ class MoveTextView @JvmOverloads constructor(
         context: Context?,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0
-) : AppCompatTextView(context, attrs, defStyleAttr) {
+) : AppCompatTextView(context!!, attrs, defStyleAttr) {
 
     private var screenHeight = 0
     private var screenWidth = 0
